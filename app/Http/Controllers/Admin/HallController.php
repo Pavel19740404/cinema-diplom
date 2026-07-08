@@ -3,63 +3,51 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Hall;
+use App\Models\Seat;
 use Illuminate\Http\Request;
 
 class HallController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $halls = Hall::all();
+        return view('admin.index', compact('halls'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'rows' => 'required|integer|min:1',
+            'seats_per_row' => 'required|integer|min:1',
+        ]);
+
+        $hall = Hall::create($request->only('name', 'rows', 'seats_per_row'));
+
+        for ($row = 1; $row <= $hall->rows; $row++) {
+            for ($seat = 1; $seat <= $hall->seats_per_row; $seat++) {
+                Seat::create([
+                    'hall_id' => $hall->id,
+                    'row' => $row,
+                    'seat_number' => $seat,
+                    'type' => 'standard',
+                ]);
+            }
+        }
+
+        return redirect()->route('admin.halls.index')->with('success', 'Зал создан');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, Hall $hall)
     {
-        //
+        $hall->update(['is_open' => $request->has('is_open')]);
+        return redirect()->route('admin.halls.index')->with('success', 'Зал обновлён');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(Hall $hall)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $hall->delete();
+        return redirect()->route('admin.halls.index')->with('success', 'Зал удалён');
     }
 }

@@ -15,7 +15,7 @@ Route::post('/ticket', [TicketController::class, 'store'])->name('ticket.store')
 Route::get('/ticket/{ticket}', [TicketController::class, 'show'])->name('ticket.show');
 
 // Админка
-Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::resource('halls', HallController::class);
     Route::resource('films', FilmController::class);
     Route::resource('seances', SeanceController::class);

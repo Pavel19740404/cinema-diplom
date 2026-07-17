@@ -3,63 +3,32 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Seance;
+use App\Models\Hall;
+use App\Models\Film;
 use Illuminate\Http\Request;
 
 class SeanceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'hall_id' => 'required|exists:halls,id',
+            'film_id' => 'required|exists:films,id',
+            'date' => 'required|date',
+            'start_time' => 'required',
+            'price_standard' => 'required|numeric|min:0',
+            'price_vip' => 'required|numeric|min:0',
+        ]);
+
+        Seance::create($request->all());
+
+        return redirect()->route('admin.halls.index')->with('success', 'Сеанс добавлен');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function destroy(Seance $seance)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $seance->delete();
+        return redirect()->route('admin.halls.index')->with('success', 'Сеанс удалён');
     }
 }

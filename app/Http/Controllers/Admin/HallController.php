@@ -12,7 +12,9 @@ class HallController extends Controller
     public function index()
     {
         $halls = Hall::all();
-        return view('admin.index', compact('halls'));
+        $films = \App\Models\Film::all();
+        $seances = \App\Models\Seance::with(['hall', 'film'])->get();
+        return view('admin.index', compact('halls', 'films', 'seances'));
     }
 
     public function store(Request $request)

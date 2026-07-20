@@ -1,58 +1,108 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Cinema Diplom — сайт бронирования билетов в кинотеатр
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Дипломный проект по профессии «Веб-разработчик» (Netology). Сайт для онлайн-бронирования билетов в кинотеатр с административной панелью для управления залами, фильмами и сеансами.
 
-## About Laravel
+## Технологии
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.3
+- Laravel 13
+- SQLite (база данных)
+- Laravel Breeze (аутентификация)
+- simplesoftwareio/simple-qrcode (генерация QR-кодов билетов, формат SVG)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Требования
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.3 или выше
+- Composer
+- Node.js и npm (для сборки фронтенд-зависимостей Breeze)
 
-## Learning Laravel
+## Установка и запуск
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
+1. Клонировать репозиторий и перейти в папку проекта:
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/Pavel19740404/cinema-diplom.git
+cd cinema-diplom
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+2. Установить PHP-зависимости:
+```bash
+composer install
+```
 
-## Contributing
+Если в окружении отключено расширение `ext-gd` (используется для генерации QR-кодов в формате PNG), пакет всё равно ставится — QR-коды генерируются в формате SVG, для которого `ext-gd` не требуется:
+```bash
+composer install --ignore-platform-req=ext-gd
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+3. Установить JS-зависимости и собрать фронтенд:
+```bash
+npm install
+npm run build
+```
 
-## Code of Conduct
+4. Скопировать файл окружения и сгенерировать ключ приложения:
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+5. Создать файл базы данных SQLite (если его ещё нет):
+```bash
+touch database/database.sqlite
+```
+В файле `.env` должно быть указано:
+6. Выполнить миграции базы данных:
+```bash
+php artisan migrate
+```
 
-## Security Vulnerabilities
+7. Создать симлинк для хранения загружаемых файлов (постеров фильмов):
+```bash
+php artisan storage:link
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+8. Запустить сервер разработки:
+```bash
+php artisan serve
+```
 
-## License
+Приложение будет доступно по адресу `http://127.0.0.1:8000`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Создание администратора
+
+Регистрация через административную часть сайта не предусмотрена — пользователь с ролью администратора создаётся вручную. Самый простой способ — через `php artisan tinker`:
+
+```bash
+php artisan tinker
+```
+```php
+\App\Models\User::create([
+    'name' => 'Admin',
+    'email' => 'admin@example.com',
+    'password' => bcrypt('password'),
+]);
+```
+
+После этого войти под этим пользователем на `/login` и перейти в `/admin/halls`.
+
+## Структура ролей
+
+- **Администратор** — авторизованный пользователь, имеет доступ к `/admin/*`: создание/редактирование залов, разметка VIP-мест, добавление и редактирование фильмов, создание и редактирование сеансов, управление статусом продажи билетов (открыт/приостановлен).
+- **Гость** — неавторизованный посетитель: просмотр расписания и списка фильмов, выбор места в зале, бронирование билета с получением QR-кода.
+
+## Основные маршруты
+
+| Маршрут | Описание |
+|---|---|
+| `/` | Главная страница — список фильмов и сеансов |
+| `/hall/{seance}` | Схема зала, выбор мест |
+| `/ticket` (POST) | Бронирование выбранных мест |
+| `/ticket/{ticket}` | Страница билета с QR-кодом |
+| `/admin/halls` | Админ-панель: залы, фильмы, сеансы |
+| `/admin/halls/{hall}/seats` | Разметка VIP-мест зала |
+
+## Особенности реализации
+
+- Бронирование мест защищено от одинаковых действий: при одновременной попытке забронировать одно и то же место используется транзакция БД с блокировкой строк (`lockForUpdate`) — второй запрос получит понятную ошибку вместо создания дублирующего билета.
+- Валидация входных данных выполняется на стороне сервера (Laravel Form Validation) для всех форм: бронирование, создание/редактирование залов, фильмов, сеансов.
+- Пароли пользователей хранятся в захешированном виде (стандартный механизм Laravel/Breeze, bcrypt), проверка при аутентификации — через сверку хеша.
